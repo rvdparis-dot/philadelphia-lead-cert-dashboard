@@ -1,1 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Philadelphia Lead Certification Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div id="root"></div>
+    
+    <script>
+        const { useState } = React;
+        
+        const App = () => {
+            const [searchTerm, setSearchTerm] = useState('');
+            const [results, setResults] = useState([]);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState('');
 
+            const searchProperties = async () => {
+                if (!searchTerm.trim()) {
+                    setError('Please enter a search term');
+                    return;
+                }
+
+                setLoading(true);
+                setError('');
+                
+                try {
+                    const response = await fetch('/api/leadcert', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ search: searchTerm, limit: 25 })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        setResults(data.data || []);
+                        if (data.data?.length === 0) {
+                            setError('No properties found for your search');
+                        }
+                    } else {
+                        setError('Search failed: ' + data.error);
+                    }
+                } catch (err) {
+                    setError('Failed to connect to Philadelphia database');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const formatDate = (dateValue) => {
+                if (!dateValue) return 'Not Available';
+                try {
+                    const date = new Date(dateValue);
+                    return date.toLocaleDateString('en-US');
+                } catch {
+                    return 'Invalid Date';
+                }
+            };
+
+            const getStatusColor = (status) => {
+                if (!status) return 'bg-gray-100 text-gray-800';
+                const normalizedStatus = status.toLowerCase();
+                if (normalizedStatus.includes('valid') || normalizedStatus.includes('active')) {
+                    return 'bg-green-100 text-green-800';
+                }
+                if (normalizedStatus.includes('expired') || normalizedStatus.includes('inactive')) {
+                    return 'bg-red-100 text-red-800';
+                }
+                return 'bg-yellow-100 text-yellow-800';
+            };
+
+            return React.createElement('div', { className: 'min-h-screen p-4 md:p-8' }, [
+                // Header
+                React.createElement('div', { 
+                    key: 'header',
+                    className: 'bg-white rounded-lg shadow-sm p-6 md:p-8 mb-8' 
+                }, [
+                    React.createElement('div', {
+                        key: 'header-content',
+                        className: 'flex items-center space-x-4 mb-4'
+                    }, [
+                        React.createElement('div', {
+                            key: 'logo',
+                            className: 'bg-blue-600 p-3 rounded-xl'
+                        }, '🏛️'),
+                        React.createElement('div', { key: 'titles' }, [
+                            React.createElement('h1', { 
+                                className: 'text-2xl md:text-3xl font-bold text-gray-900' 
+                            }, 'Philadelphia Lead Certification Dashboard'),
+                            React.createElement('p', { 
+                                className: 'text-gray-600' 
+                            }, 'Search official lead certification records from Philadelphia Department of Public Health')
+                        ])
+                    ])
+                ]),
+
+                // Search Section
+                React.createElement('div', { 
+                    key: 'search',
+                    className: 'bg-white rounded-lg shadow-sm p-6 md:p-8 mb-8' 
+                }, [
+                    React.createElement('div', { 
+                        key: 'search-form',
+                        className: 'flex flex-col md:flex-row gap-4 mb-4' 
+                    }, [
+                        React.createElement('input', {
+                            key: 'search-input',
+                            type: 'text',
+                            value: searchTerm,
+                            onChange: (e) => setSearchTerm(e.target.value),
+                            placeholder: 'Enter address, OPA number, or property owner...',
+                            className: 'flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
+                            onKeyDown: (e) => e.key === 'Enter' && !loading && searchProperties()
+                        }),
+                        React.createElement('button', {
+                            key: 'search-button',
+                            onClick: searchProperties,
+                            disabled: loading || !searchTerm.trim(),
+                            className: 'px-6 md:px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed'
+                        }, loading ? '🔄 Searching...' : '🔍 Search Database')
+                    ]),
+
+                    // Error display
+                    error && React.createElement('div', {
+                        key: 'error',
+                        className: error.includes('No properties found') ? 
+                            'p-4 text-yellow-800 bg-yellow-100 border border-yellow-200 rounded-lg' :
+                            'p-4 text-red-800 bg-red-100 border border-red-200 rounded-lg'
+                    }, error)
+                ]),
+
+                // Results Section
+                results.length > 0 && React.createElement('div', { 
+                    key: 'results',
+                    className: 'space-y-6' 
+                }, [
+                    React.createElement('div', {
+                        key: 'results-header',
+                        className: 'flex items-center justify-between'
+                    }, [
+                        React.createElement('h2', { 
+                            className: 'text-xl md:text-2xl font-bold text-gray-900' 
+                        }, `Found ${results.length} Lead Certification Records`),
+                        React.createElement('div', {
+                            className: 'text-sm text-green-600 flex items-center'
+                        }, ['🔗 Live data from Philadelphia Dept of Public Health'])
+                    ]),
+
+                    ...results.map((result, index) => 
+                        React.createElement('div', {
+                            key: index,
+                            className: 'bg-white rounded-lg shadow-sm border p-4 md:p-6 hover:shadow-md transition-shadow'
+                        }, [
+                            React.createElement('div', { 
+                                key: 'property-header',
+                                className: 'flex flex-col md:flex-row md:justify-between md:items-start mb-4 space-y-2 md:space-y-0' 
+                            }, [
+                                React.createElement('div', { key: 'property-info' }, [
+                                    React.createElement('h3', { 
+                                        className: 'text-lg md:text-xl font-semibold text-gray-900' 
+                                    }, result.address || 'Address Not Available'),
+                                    result.opa_account_num && React.createElement('p', { 
+                                        className: 'text-gray-600 text-sm' 
+                                    }, `OPA Account: ${result.opa_account_num}`),
+                                    result.property_owner && React.createElement('p', { 
+                                        className: 'text-gray-600 text-sm' 
+                                    }, `Owner: ${result.property_owner}`)
+                                ]),
+                                React.createElement('span', {
+                                    className: `px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(result.cert_status)}`
+                                }, result.cert_status || 'Unknown Status')
+                            ]),
+
+                            React.createElement('div', { 
+                                key: 'property-details',
+                                className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4' 
+                            }, [
+                                React.createElement('div', { key: 'cert-type', className: 'bg-gray-50 p-3 rounded-lg' }, [
+                                    React.createElement('p', { className: 'text-xs text-gray-600 uppercase tracking-wide' }, 'Certification Type'),
+                                    React.createElement('p', { className: 'font-semibold text-gray-900' }, result.cert_type || 'Not Available')
+                                ]),
+                                React.createElement('div', { key: 'cert-date', className: 'bg-gray-50 p-3 rounded-lg' }, [
+                                    React.createElement('p', { className: 'text-xs text-gray-600 uppercase tracking-wide' }, 'Certification Date'),
+                                    React.createElement('p', { className: 'font-semibold text-gray-900' }, formatDate(result.cert_date))
+                                ]),
+                                React.createElement('div', { key: 'expiry-date', className: 'bg-gray-50 p-3 rounded-lg' }, [
+                                    React.createElement('p', { className: 'text-xs text-gray-600 uppercase tracking-wide' }, 'Expiry Date'),
+                                    React.createElement('p', { className: 'font-semibold text-gray-900' }, formatDate(result.cert_expiry))
+                                ]),
+                                React.createElement('div', { key: 'inspector', className: 'bg-gray-50 p-3 rounded-lg' }, [
+                                    React.createElement('p', { className: 'text-xs text-gray-600 uppercase tracking-wide' }, 'Inspector'),
+                                    React.createElement('p', { className: 'font-semibold text-gray-900 text-sm' }, result.inspector || 'Not Available')
+                                ])
+                            ])
+                        ])
+                    )
+                ])
+            ]);
+        };
+
+        ReactDOM.render(React.createElement(App), document.getElementById('root'));
+    </script>
+</body>
+</html>
