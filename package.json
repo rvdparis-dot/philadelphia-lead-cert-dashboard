@@ -1,14 +1,4 @@
 {
   "name": "philadelphia-lead-cert-dashboard",
-  "version": "1.0.0",
-  "description": "Philadelphia Lead Certification Dashboard",
-  "scripts": {
-    "build": "echo 'Static site ready'",
-    "dev": "echo 'Development mode'",
-    "start": "echo 'Production ready'"
-  },
-  "dependencies": {},
-  "engines": {
-    "node": "18.x"
-  }
+  "version": "1.0.0"
 }
