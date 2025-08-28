@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "api/leadcert.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/test-leadcert.js": {
+      "runtime": "nodejs18.x"
+    }
+  }
+}
