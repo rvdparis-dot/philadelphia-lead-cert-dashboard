@@ -1,9 +1,8 @@
 {
   "version": 2,
   "functions": {
-    "api/leadcert.js": {
-      "runtime": "nodejs18.x",
-      "maxDuration": 30
+    "api/*.js": {
+      "runtime": "@vercel/node@3.0.0"
     }
   },
   "headers": [
