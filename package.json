@@ -1,0 +1,16 @@
+{
+  "name": "philadelphia-lead-cert-dashboard",
+  "version": "1.0.0",
+  "description": "Philadelphia Lead Certification Dashboard - Real-time property lead certification tracking",
+  "scripts": {
+    "build": "echo 'No build needed - static site'",
+    "start": "node api/leadcert.js"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
